@@ -1,5 +1,5 @@
 {
-  "name": "legal-saas-lib",
+  "name": "@legal-saas/legal-saas-lib",
   "version": "0.1.0",
   "description": "A shared library for legal SaaS applications",
   "license": "MIT",
@@ -18,6 +18,9 @@
     "library",
     "typescript"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "module": "dist/legal-saas-lib.esm.js",
   "typings": "dist/index.d.ts",
