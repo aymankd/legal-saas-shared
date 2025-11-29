@@ -1,10 +1,17 @@
 name: Size Check
 on: 
+  push:
+    branches: [main]
   pull_request:
     branches: [main, develop]
 
 jobs:
+  ci:
+    name: Run CI checks
+    uses: ./.github/workflows/main.yml
+    
   size:
+    needs: ci
     runs-on: ubuntu-latest
     env:
       CI_JOB_NUMBER: 1
@@ -28,3 +35,28 @@ jobs:
         uses: andresz1/size-limit-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  create-tag:
+    name: Create version tag
+    needs: [ci, size]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get package.json version
+        id: package-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Creating tag: v$VERSION"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.package-version.outputs.version }}
+          git push origin ${{ steps.package-version.outputs.version }}

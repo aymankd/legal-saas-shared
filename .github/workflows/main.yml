@@ -4,11 +4,47 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_call:
 
 jobs:
+  version-check:
+    name: Check version bump
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get-latest-tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Get package.json version
+        id: get-package-version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "package_version=v$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: v$PACKAGE_VERSION"
+
+      - name: Compare versions
+        run: |
+          if [ "${{ steps.get-latest-tag.outputs.latest_tag }}" == "${{ steps.get-package-version.outputs.package_version }}" ]; then
+            echo "Error: Version in package.json (${{ steps.get-package-version.outputs.package_version }}) must be bumped from latest tag (${{ steps.get-latest-tag.outputs.latest_tag }})"
+            exit 1
+          fi
+          echo "Version check passed: ${{ steps.get-latest-tag.outputs.latest_tag }} -> ${{ steps.get-package-version.outputs.package_version }}"
+
   build:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    if: always()
+    needs: [version-check]
+    continue-on-error: false
     strategy:
       matrix:
         node: ['18.x', '20.x', '22.x']
