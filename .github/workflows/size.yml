@@ -1,17 +1,10 @@
 name: Size Check
-on: 
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main, develop]
+on:
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
-  ci:
-    name: Run CI checks
-    uses: ./.github/workflows/main.yml
-    
   size:
-    needs: ci
     runs-on: ubuntu-latest
     env:
       CI_JOB_NUMBER: 1
@@ -35,20 +28,17 @@ jobs:
         run: pnpm build
 
       - name: Check bundle size
-        uses: andresz1/size-limit-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm size
 
   create-tag:
     name: Create version tag
-    needs: [ci, size]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: size
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: checkout@v4
 
       - name: Get package.json version
         id: package-version
@@ -63,3 +53,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.package-version.outputs.version }}
           git push origin ${{ steps.package-version.outputs.version }}
+
+      - name: Trigger publish workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: publish.yml
+          token: ${{ secrets.GITHUB_TOKEN }}

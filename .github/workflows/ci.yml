@@ -5,6 +5,7 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   version-check:
@@ -81,3 +82,15 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+  trigger-size-check:
+    name: Trigger size check workflow
+    needs: [version-check, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger size workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: size.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
