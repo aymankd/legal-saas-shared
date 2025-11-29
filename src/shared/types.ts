@@ -6,6 +6,8 @@ import {
   SpecializedResource,
 } from "./config";
 
+export type OptionsOfArray<T> = T extends readonly (infer U)[] ? U : never;
+
 export type AuthorizationsInResource<T extends Resource | SpecializedResource> =
   T extends Resource
     ? (typeof RESOURCE_AUTHORISATION_MAP)[T]

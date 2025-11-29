@@ -1,3 +1,5 @@
+import { OptionsOfArray } from "./types";
+
 // Definition of the configuration of authorizations and resources and specialities
 const authorisations = [
   "CREATE",
@@ -17,10 +19,10 @@ const specialities = [
   "PEDIATRICIAN",
 ] as const;
 
-export type Authorisation = (typeof authorisations)[number];
-export type Resource = (typeof resources)[number];
-export type SpecializedResource = (typeof specialized_resources)[number];
-export type Speciality = (typeof specialities)[number];
+export type Authorisation = OptionsOfArray<typeof authorisations>;
+export type Resource = OptionsOfArray<typeof resources>;
+export type SpecializedResource = OptionsOfArray<typeof specialized_resources>;
+export type Speciality = OptionsOfArray<typeof specialities>;
 
 // the mapping of authorizations and resources and specialities
 
