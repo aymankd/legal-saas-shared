@@ -93,7 +93,7 @@ jobs:
       contents: read
     steps:
       - name: Trigger size workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: size.yml
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run size.yml --repo ${{ github.repository }}
