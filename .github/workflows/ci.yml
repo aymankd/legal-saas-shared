@@ -88,6 +88,9 @@ jobs:
     needs: [version-check, build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Trigger size workflow
         uses: benc-uk/workflow-dispatch@v1
